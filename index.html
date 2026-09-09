@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Bahasa Jepang</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden-page { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+
+    <!-- Header & Navigation -->
+    <header class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-4xl mx-auto p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-bold tracking-wide">🇯🇵 Nihongo Manabu</h1>
+            <nav class="flex flex-wrap gap-2">
+                <button onclick="switchTab('simpan')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 rounded-lg text-sm font-medium transition">Simpan Kata</button>
+                <button onclick="switchTab('latihan')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 rounded-lg text-sm font-medium transition">Latihan Karakter</button>
+                <button onclick="switchTab('hafal')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 rounded-lg text-sm font-medium transition">Kosakata Hafal</button>
+                <button onclick="switchTab('ai')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 rounded-lg text-sm font-medium transition">AI Tutor</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 mt-4">
+
+        <!-- 1. HALAMAN SIMPAN KATA -->
+        <section id="page-simpan" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold mb-4 text-indigo-900">Tambah Karakter / Kosakata</h2>
+            <form id="form-item" onsubmit="saveItem(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Kategori</label>
+                    <select id="kategori" class="w-full border rounded-lg p-2 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="hiragana">Hiragana</option>
+                        <option value="katakana">Katakana</option>
+                        <option value="kanji">Kanji</option>
+                        <option value="kosakata">Kosakata (Kotoba)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Jepang</label>
+                        <input type="text" id="jpText" placeholder="例: 猫 / ねこ" required class="w-full border rounded-lg p-2 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Cara Baca (Romaji)</label>
+                        <input type="text" id="romajiText" placeholder="例: Neko" required class="w-full border rounded-lg p-2 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Arti (Indonesia)</label>
+                        <input type="text" id="artiText" placeholder="例: Kucing" required class="w-full border rounded-lg p-2 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition">Simpan ke Memory</button>
+            </form>
+
+            <hr class="my-6">
+
+            <h3 class="text-lg font-bold mb-3 text-slate-700">Daftar Item Belum Dihafal</h3>
+            <div id="list-unmastered" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </section>
+
+        <!-- 2. HALAMAN LATIHAN KARAKTER -->
+        <section id="page-latihan" class="hidden-page bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
+            <h2 class="text-xl font-bold mb-4 text-indigo-900">Latihan Flashcard & Tebak Cara Baca</h2>
+            <div class="max-w-sm mx-auto border-2 border-indigo-100 rounded-2xl p-6 bg-indigo-50/50 my-4 shadow-inner">
+                <span id="quiz-kategori" class="text-xs uppercase tracking-widest bg-indigo-200 text-indigo-800 px-2 py-1 rounded font-bold">Kategori</span>
+                <div id="quiz-question" class="text-6xl font-extrabold text-indigo-900 my-6">?</div>
+                <input type="text" id="quiz-input" placeholder="Ketik cara baca (romaji)..." class="w-full border rounded-lg p-2 text-center mb-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+                <button onclick="checkQuizAnswer()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition">Cek Jawaban</button>
+            </div>
+            <p id="quiz-feedback" class="text-sm font-medium mt-2 h-6"></p>
+        </section>
+
+        <!-- 3. HALAMAN KOSAKATA TERHAFAL -->
+        <section id="page-hafal" class="hidden-page bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold mb-4 text-indigo-900">Daftar Kosakata/Karakter Terhafal 🎉</h2>
+            <div id="list-mastered" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </section>
+
+        <!-- 4. HALAMAN AI TUTOR -->
+        <section id="page-ai" class="hidden-page bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold mb-2 text-indigo-900">AI Japanese Tutor 🤖</h2>
+            <p class="text-xs text-slate-500 mb-4">Latihan percakapan, minta penjelasan tata bahasa, atau minta buatkan soal bertahap.</p>
+            
+            <div class="mb-4">
+                <label class="block text-xs font-semibold mb-1 text-slate-600">Gemini API Key (Tersimpan di browser lokalmu):</label>
+                <input type="password" id="apiKeyInput" placeholder="Masukkan Gemini API Key..." class="w-full border rounded-lg p-2 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+
+            <div id="chat-box" class="h-64 border rounded-lg p-3 bg-slate-50 overflow-y-auto space-y-3 mb-4 text-sm">
+                <div class="bg-indigo-100 text-indigo-900 p-2.5 rounded-lg max-w-[80%]">
+                    Konnichiwa! Aku AI Tutor kamu. Kamu bisa ajak aku latihan percakapan sederhana atau minta tes tata bahasa Jepang!
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="ai-input" placeholder="Tuliskan kalimat atau pertanyaanmu..." class="flex-1 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" onkeypress="if(event.key==='Enter') sendToAI()">
+                <button onclick="sendToAI()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">Kirim</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- LOGIKA UTAMA & STORAGE ---
+        let items = JSON.parse(localStorage.getItem('jp_items')) || [];
+        let currentQuizIndex = -1;
+
+        function saveStorage() {
+            localStorage.setItem('jp_items', JSON.stringify(items));
+        }
+
+        // --- NAVIGASI Halaman ---
+        function switchTab(tab) {
+            ['simpan', 'latihan', 'hafal', 'ai'].forEach(t => {
+                document.getElementById(`page-${t}`).classList.add('hidden-page');
+            });
+            document.getElementById(`page-${tab}`).classList.remove('hidden-page');
+            
+            if (tab === 'simpan') renderLists();
+            if (tab === 'hafal') renderMastered();
+            if (tab === 'latihan') generateQuiz();
+        }
+
+        // --- SIMPAN ITEM BARU ---
+        function saveItem(e) {
+            e.preventDefault();
+            const newItem = {
+                id: Date.now(),
+                kategori: document.getElementById('kategori').value,
+                jp: document.getElementById('jpText').value,
+                romaji: document.getElementById('romajiText').value.toLowerCase().trim(),
+                arti: document.getElementById('artiText').value,
+                mastered: false
+            };
+            items.push(newItem);
+            saveStorage();
+            document.getElementById('form-item').reset();
+            renderLists();
+        }
+
+        function toggleMastered(id) {
+            items = items.map(item => item.id === id ? { ...item, mastered: !item.mastered } : item);
+            saveStorage();
+            renderLists();
+            renderMastered();
+        }
+
+        function deleteItem(id) {
+            items = items.filter(item => item.id !== id);
+            saveStorage();
+            renderLists();
+            renderMastered();
+        }
+
+        // --- RENDER DAFTAR ---
+        function renderLists() {
+            const container = document.getElementById('list-unmastered');
+            container.innerHTML = '';
+            const unmastered = items.filter(i => !i.mastered);
+
+            if (unmastered.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-400 col-span-2">Belum ada data. Silakan tambah data di atas.</p>';
+                return;
+            }
+
+            unmastered.forEach(item => {
+                container.innerHTML += `
+                    <div class="border p-3 rounded-lg flex justify-between items-center bg-slate-50">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">${item.kategori}</span>
+                            <div class="text-lg font-bold text-slate-800">${item.jp} <span class="text-sm font-normal text-slate-500">(${item.romaji})</span></div>
+                            <div class="text-xs text-slate-600">${item.arti}</div>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="toggleMastered(${item.id})" class="text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-2 py-1 rounded">Hafal</button>
+                            <button onclick="deleteItem(${item.id})" class="text-xs bg-rose-100 text-rose-700 hover:bg-rose-200 px-2 py-1 rounded">Hapus</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderMastered() {
+            const container = document.getElementById('list-mastered');
+            container.innerHTML = '';
+            const mastered = items.filter(i => i.mastered);
+
+            if (mastered.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-400 col-span-2">Belum ada kata yang ditandai hafal.</p>';
+                return;
+            }
+
+            mastered.forEach(item => {
+                container.innerHTML += `
+                    <div class="border border-emerald-200 p-3 rounded-lg flex justify-between items-center bg-emerald-50/50">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold bg-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded">${item.kategori}</span>
+                            <div class="text-lg font-bold text-emerald-900">${item.jp} <span class="text-sm font-normal text-emerald-700">(${item.romaji})</span></div>
+                            <div class="text-xs text-emerald-800">${item.arti}</div>
+                        </div>
+                        <button onclick="toggleMastered(${item.id})" class="text-xs bg-slate-200 text-slate-700 hover:bg-slate-300 px-2 py-1 rounded">Batal Hafal</button>
+                    </div>
+                `;
+            });
+        }
+
+        // --- FITUR LATIHAN / QUIZ ---
+        function generateQuiz() {
+            const unmastered = items.filter(i => !i.mastered);
+            const qQuestion = document.getElementById('quiz-question');
+            const qKategori = document.getElementById('quiz-kategori');
+            const qFeedback = document.getElementById('quiz-feedback');
+            qFeedback.innerText = '';
+
+            if (unmastered.length === 0) {
+                qQuestion.innerText = "🎉";
+                qKategori.innerText = "Selesai";
+                qFeedback.innerText = "Kamu sudah menghafal semua item! Tambahkan kata baru dulu.";
+                currentQuizIndex = -1;
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * unmastered.length);
+            const quizItem = unmastered[randomIndex];
+            currentQuizIndex = items.findIndex(i => i.id === quizItem.id);
+
+            qQuestion.innerText = quizItem.jp;
+            qKategori.innerText = quizItem.kategori;
+            document.getElementById('quiz-input').value = '';
+        }
+
+        function checkQuizAnswer() {
+            if (currentQuizIndex === -1) return;
+            const input = document.getElementById('quiz-input').value.toLowerCase().trim();
+            const targetItem = items[currentQuizIndex];
+            const qFeedback = document.getElementById('quiz-feedback');
+
+            if (input === targetItem.romaji) {
+                qFeedback.className = "text-sm font-medium mt-2 h-6 text-emerald-600";
+                qFeedback.innerText = "Benar! Sugoi! 👏";
+                setTimeout(generateQuiz, 1200);
+            } else {
+                qFeedback.className = "text-sm font-medium mt-2 h-6 text-rose-600";
+                qFeedback.innerText = `Salah. Jawaban yang benar: ${targetItem.romaji} (${targetItem.arti})`;
+            }
+        }
+
+        // --- INTEGRASI AI GEMINI ---
+        async function sendToAI() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const inputField = document.getElementById('ai-input');
+            const userMsg = inputField.value.trim();
+            const chatBox = document.getElementById('chat-box');
+
+            if (!apiKey) {
+                alert("Silakan masukkan Gemini API Key kamu terlebih dahulu!");
+                return;
+            }
+            if (!userMsg) return;
+
+            // Render Pesan User
+            chatBox.innerHTML += `<div class="bg-indigo-600 text-white p-2.5 rounded-lg max-w-[80%] ml-auto">${userMsg}</div>`;
+            inputField.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-[#Type]': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Kamu adalah tutor bahasa Jepang yang ramah, santai, dan interaktif. Bantu pengguna belajar bahasa Jepang bertahap. Pertanyaan/Input pengguna: "${userMsg}"`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, AI sedang mengalami masalah.";
+
+                chatBox.innerHTML += `<div class="bg-indigo-100 text-indigo-900 p-2.5 rounded-lg max-w-[80%]">${aiReply.replace(/\n/g, '<br>')}</div>`;
+            } catch (err) {
+                chatBox.innerHTML += `<div class="bg-rose-100 text-rose-800 p-2.5 rounded-lg max-w-[80%]">Gagal terhubung ke AI. Pastikan API Key benar.</div>`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Init Tampilan Awal
+        renderLists();
+    </script>
+</body>
+</html>
