@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belajar Bahasa Jepang</title>
+    <title>Belajar Bahasa Jepang - Nihongo Manabu</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -14,9 +14,10 @@
 
     <!-- Header & Navigation -->
     <header class="bg-indigo-600 text-white shadow-md">
-        <div class="max-w-4xl mx-auto p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-5xl mx-auto p-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <h1 class="text-2xl font-bold tracking-wide">🇯🇵 Nihongo Manabu</h1>
-            <nav class="flex flex-wrap gap-2">
+            <nav class="flex flex-wrap justify-center gap-2">
+                <button onclick="switchTab('tabel')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 rounded-lg text-sm font-medium transition">Tabel Kana</button>
                 <button onclick="switchTab('simpan')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 rounded-lg text-sm font-medium transition">Simpan Kata</button>
                 <button onclick="switchTab('latihan')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 rounded-lg text-sm font-medium transition">Latihan Karakter</button>
                 <button onclick="switchTab('hafal')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 rounded-lg text-sm font-medium transition">Kosakata Hafal</button>
@@ -25,10 +26,30 @@
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto p-4 mt-4">
+    <main class="max-w-5xl mx-auto p-4 mt-4">
+
+        <!-- 0. HALAMAN TABEL HIRAGANA & KATAKANA -->
+        <section id="page-tabel" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-indigo-900">Tabel Referensi Kana</h2>
+                    <p class="text-xs text-slate-500">Klik tombol "+ Tambah" untuk memasukkan karakter ke daftar belajarmu secara otomatis.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btn-show-hira" onclick="toggleKanaTable('hira')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold">Hiragana</button>
+                    <button id="btn-show-kata" onclick="toggleKanaTable('kata')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold">Katakana</button>
+                </div>
+            </div>
+
+            <!-- Grid Hiragana -->
+            <div id="table-hiragana" class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2"></div>
+
+            <!-- Grid Katakana -->
+            <div id="table-katakana" class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2 hidden-page"></div>
+        </section>
 
         <!-- 1. HALAMAN SIMPAN KATA -->
-        <section id="page-simpan" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <section id="page-simpan" class="hidden-page bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <h2 class="text-xl font-bold mb-4 text-indigo-900">Tambah Karakter / Kosakata</h2>
             <form id="form-item" onsubmit="saveItem(event)" class="space-y-4">
                 <div>
@@ -69,7 +90,7 @@
             <div class="max-w-sm mx-auto border-2 border-indigo-100 rounded-2xl p-6 bg-indigo-50/50 my-4 shadow-inner">
                 <span id="quiz-kategori" class="text-xs uppercase tracking-widest bg-indigo-200 text-indigo-800 px-2 py-1 rounded font-bold">Kategori</span>
                 <div id="quiz-question" class="text-6xl font-extrabold text-indigo-900 my-6">?</div>
-                <input type="text" id="quiz-input" placeholder="Ketik cara baca (romaji)..." class="w-full border rounded-lg p-2 text-center mb-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="text" id="quiz-input" placeholder="Ketik cara baca (romaji)..." class="w-full border rounded-lg p-2 text-center mb-3 focus:ring-2 focus:ring-indigo-500 outline-none" onkeypress="if(event.key==='Enter') checkQuizAnswer()">
                 <button onclick="checkQuizAnswer()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition">Cek Jawaban</button>
             </div>
             <p id="quiz-feedback" class="text-sm font-medium mt-2 h-6"></p>
@@ -106,7 +127,21 @@
     </main>
 
     <script>
-        // --- LOGIKA UTAMA & STORAGE ---
+        // Data Gojūon (Hiragana & Katakana Dasar)
+        const kanaData = [
+            { hira: 'あ', kata: 'ア', romaji: 'a' }, { hira: 'い', kata: 'イ', romaji: 'i' }, { hira: 'う', kata: 'ウ', romaji: 'u' }, { hira: 'え', kata: 'エ', romaji: 'e' }, { hira: 'お', kata: 'オ', romaji: 'o' },
+            { hira: 'か', kata: 'カ', romaji: 'ka' }, { hira: 'き', kata: 'キ', romaji: 'ki' }, { hira: 'く', kata: 'ク', romaji: 'ku' }, { hira: 'け', kata: 'ケ', romaji: 'ke' }, { hira: 'こ', kata: 'コ', romaji: 'ko' },
+            { hira: 'さ', kata: 'サ', romaji: 'sa' }, { hira: 'し', kata: 'シ', romaji: 'shi' }, { hira: 'す', kata: 'ス', romaji: 'su' }, { hira: 'せ', kata: 'セ', romaji: 'se' }, { hira: 'そ', kata: 'ソ', romaji: 'so' },
+            { hira: 'た', kata: 'タ', romaji: 'ta' }, { hira: 'ち', kata: 'チ', romaji: 'chi' }, { hira: 'つ', kata: 'ツ', romaji: 'tsu' }, { hira: 'て', kata: 'テ', romaji: 'te' }, { hira: 'と', kata: 'ト', romaji: 'to' },
+            { hira: 'な', kata: 'ナ', romaji: 'na' }, { hira: 'に', kata: 'ニ', romaji: 'ni' }, { hira: 'ぬ', kata: 'ヌ', romaji: 'nu' }, { hira: 'ね', kata: 'ネ', romaji: 'ne' }, { hira: 'の', kata: 'ノ', romaji: 'no' },
+            { hira: 'は', kata: 'ハ', romaji: 'ha' }, { hira: 'ひ', kata: 'ヒ', romaji: 'hi' }, { hira: 'ふ', kata: 'フ', romaji: 'fu' }, { hira: 'へ', kata: 'ヘ', romaji: 'he' }, { hira: 'ほ', kata: 'ホ', romaji: 'ho' },
+            { hira: 'ま', kata: 'マ', romaji: 'ma' }, { hira: 'み', kata: 'ミ', romaji: 'mi' }, { hira: 'む', kata: 'ム', romaji: 'mu' }, { hira: 'め', kata: 'メ', romaji: 'me' }, { hira: 'も', kata: 'モ', romaji: 'mo' },
+            { hira: 'や', kata: 'ヤ', romaji: 'ya' }, { hira: '', kata: '', romaji: '' }, { hira: 'ゆ', kata: 'ユ', romaji: 'yu' }, { hira: '', kata: '', romaji: '' }, { hira: 'よ', kata: 'ヨ', romaji: 'yo' },
+            { hira: 'ら', kata: 'ラ', romaji: 'ra' }, { hira: 'り', kata: 'リ', romaji: 'ri' }, { hira: 'る', kata: 'ル', romaji: 'ru' }, { hira: 'れ', kata: 'レ', romaji: 're' }, { hira: 'ろ', kata: 'ロ', romaji: 'ro' },
+            { hira: 'わ', kata: 'ワ', romaji: 'wa' }, { hira: '', kata: '', romaji: '' }, { hira: '', kata: '', romaji: '' }, { hira: '', kata: '', romaji: '' }, { hira: 'を', kata: 'ヲ', romaji: 'wo' },
+            { hira: 'ん', kata: 'ン', romaji: 'n' }
+        ];
+
         let items = JSON.parse(localStorage.getItem('jp_items')) || [];
         let currentQuizIndex = -1;
 
@@ -114,9 +149,81 @@
             localStorage.setItem('jp_items', JSON.stringify(items));
         }
 
-        // --- NAVIGASI Halaman ---
+        // --- RENDER TABEL KANA ---
+        function renderTables() {
+            const hiraTable = document.getElementById('table-hiragana');
+            const kataTable = document.getElementById('table-katakana');
+            hiraTable.innerHTML = '';
+            kataTable.innerHTML = '';
+
+            kanaData.forEach(k => {
+                if (!k.romaji) {
+                    hiraTable.innerHTML += `<div></div>`;
+                    kataTable.innerHTML += `<div></div>`;
+                    return;
+                }
+
+                hiraTable.innerHTML += `
+                    <div class="border rounded-lg p-2 text-center bg-slate-50 hover:bg-indigo-50 transition flex flex-col justify-between">
+                        <span class="text-2xl font-bold text-indigo-900">${k.hira}</span>
+                        <span class="text-xs text-slate-500 mb-1">${k.romaji}</span>
+                        <button onclick="addFromTable('${k.hira}', '${k.romaji}', 'hiragana')" class="text-[10px] bg-indigo-100 hover:bg-indigo-200 text-indigo-700 py-0.5 px-1 rounded font-semibold">+ Simpan</button>
+                    </div>
+                `;
+
+                kataTable.innerHTML += `
+                    <div class="border rounded-lg p-2 text-center bg-slate-50 hover:bg-indigo-50 transition flex flex-col justify-between">
+                        <span class="text-2xl font-bold text-indigo-900">${k.kata}</span>
+                        <span class="text-xs text-slate-500 mb-1">${k.romaji}</span>
+                        <button onclick="addFromTable('${k.kata}', '${k.romaji}', 'katakana')" class="text-[10px] bg-indigo-100 hover:bg-indigo-200 text-indigo-700 py-0.5 px-1 rounded font-semibold">+ Simpan</button>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleKanaTable(type) {
+            const hiraTable = document.getElementById('table-hiragana');
+            const kataTable = document.getElementById('table-katakana');
+            const btnHira = document.getElementById('btn-show-hira');
+            const btnKata = document.getElementById('btn-show-kata');
+
+            if (type === 'hira') {
+                hiraTable.classList.remove('hidden-page');
+                kataTable.classList.add('hidden-page');
+                btnHira.className = "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold";
+                btnKata.className = "px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold";
+            } else {
+                hiraTable.classList.add('hidden-page');
+                kataTable.classList.remove('hidden-page');
+                btnHira.className = "px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold";
+                btnKata.className = "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold";
+            }
+        }
+
+        function addFromTable(jp, romaji, kategori) {
+            // Cek apakah sudah disimpan
+            if (items.some(i => i.jp === jp)) {
+                alert(`Karakter ${jp} sudah ada di daftar simpananmu!`);
+                return;
+            }
+
+            const newItem = {
+                id: Date.now(),
+                kategori: kategori,
+                jp: jp,
+                romaji: romaji,
+                arti: `Huruf ${kategori.toUpperCase()} '${romaji}'`,
+                mastered: false
+            };
+
+            items.push(newItem);
+            saveStorage();
+            alert(`Berhasil menyimpan ${jp} (${romaji}) ke daftar belajar!`);
+        }
+
+        // --- NAVIGASI HALAMAN ---
         function switchTab(tab) {
-            ['simpan', 'latihan', 'hafal', 'ai'].forEach(t => {
+            ['tabel', 'simpan', 'latihan', 'hafal', 'ai'].forEach(t => {
                 document.getElementById(`page-${t}`).classList.add('hidden-page');
             });
             document.getElementById(`page-${tab}`).classList.remove('hidden-page');
@@ -126,7 +233,7 @@
             if (tab === 'latihan') generateQuiz();
         }
 
-        // --- SIMPAN ITEM BARU ---
+        // --- SIMPAN ITEM MANUAL ---
         function saveItem(e) {
             e.preventDefault();
             const newItem = {
@@ -157,14 +264,14 @@
             renderMastered();
         }
 
-        // --- RENDER DAFTAR ---
+        // --- RENDER DAFTAR ITEM ---
         function renderLists() {
             const container = document.getElementById('list-unmastered');
             container.innerHTML = '';
             const unmastered = items.filter(i => !i.mastered);
 
             if (unmastered.length === 0) {
-                container.innerHTML = '<p class="text-sm text-slate-400 col-span-2">Belum ada data. Silakan tambah data di atas.</p>';
+                container.innerHTML = '<p class="text-sm text-slate-400 col-span-2">Belum ada data. Silakan simpan dari Tabel Kana atau isi form di atas.</p>';
                 return;
             }
 
@@ -220,7 +327,7 @@
             if (unmastered.length === 0) {
                 qQuestion.innerText = "🎉";
                 qKategori.innerText = "Selesai";
-                qFeedback.innerText = "Kamu sudah menghafal semua item! Tambahkan kata baru dulu.";
+                qFeedback.innerText = "Kamu sudah menghafal semua item! Simpan huruf/kata baru dulu.";
                 currentQuizIndex = -1;
                 return;
             }
@@ -243,7 +350,7 @@
             if (input === targetItem.romaji) {
                 qFeedback.className = "text-sm font-medium mt-2 h-6 text-emerald-600";
                 qFeedback.innerText = "Benar! Sugoi! 👏";
-                setTimeout(generateQuiz, 1200);
+                setTimeout(generateQuiz, 1000);
             } else {
                 qFeedback.className = "text-sm font-medium mt-2 h-6 text-rose-600";
                 qFeedback.innerText = `Salah. Jawaban yang benar: ${targetItem.romaji} (${targetItem.arti})`;
@@ -263,13 +370,11 @@
             }
             if (!userMsg) return;
 
-            // Tampilkan Pesan User
             chatBox.innerHTML += `<div class="bg-indigo-600 text-white p-2.5 rounded-lg max-w-[80%] ml-auto">${userMsg}</div>`;
             inputField.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                // Menggunakan endpoint v1 dan model gemini-1.5-flash
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 
@@ -299,8 +404,9 @@
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+
         // Init Tampilan Awal
-        renderLists();
+        renderTables();
     </script>
 </body>
 </html>
